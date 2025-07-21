@@ -1,9 +1,11 @@
+from itertools import permutations
 from operator import mul, truediv, add, sub
 import sys
 
 
 # TODO 4-4s / nubble with stack based theory
 # TODO format to release in order of length
+
 
 def mydiv(a, b):
     result = truediv(a, b)
@@ -13,18 +15,15 @@ def mydiv(a, b):
         raise ValueError
 
 
-operations = [(add, '+'),
-              (sub, '-'),
-              (mul, '*'),
-              (mydiv, '/')]
+operations = [(add, "+"), (sub, "-"), (mul, "*"), (mydiv, "/")]
 
 
 def represent_stack(stack):
     reps = [str(item) if type(item) is int else item[1] for item in stack]
-    return ' '.join(reps)
+    return " ".join(reps)
 
 
-def evaluate(stack):
+def evaluate(stack) -> int:
     try:
         total = 0
         last_operation = add
@@ -40,26 +39,25 @@ def evaluate(stack):
 
 
 def solve(target, numbers):
-    def recurse(stack, nums):
-        for n in range(len(nums)):
-            stack.append(nums[n])
-
-            remaining = nums[:n] + nums[n + 1:]
-
-            if evaluate(stack) == target:
-                print(represent_stack(stack), "= {}".format(target))
-
-            if len(remaining) > 0:
-                for op in operations:
-                    stack.append(op)
-                    stack = recurse(stack, remaining)
-                    stack = stack[:-1]
-
-            stack = stack[:-1]
-
-        return stack
-
-    recurse([], numbers)
+    for r in range(1, len(numbers) + 1):
+        orderings = permutations(numbers, r)
+        if r == 1:
+            for ordering in orderings:
+                if ordering[0] != target:
+                    continue
+                print(ordering[0])
+            continue
+        ops = list(permutations(operations, r - 1))
+        for ordering in orderings:
+            for op_series in ops:
+                stack = []
+                for i, n in enumerate(ordering):
+                    stack.append(n)
+                    if i != len(ordering) - 1:
+                        stack.append(op_series[i])
+                stack_result = evaluate(stack)
+                if stack_result == target:
+                    print(f"{represent_stack(stack)} = {target}")
 
 
 def play():
@@ -77,4 +75,6 @@ def play():
 
 if __name__ == "__main__":
     while True:
+        # solve(500, [1, 2, 3, 4, 10, 50])
+        # solve(773, [3, 10, 1, 1, 8, 10]) # (10 + 1) * (8 - 1) * 10 + 3
         play()
