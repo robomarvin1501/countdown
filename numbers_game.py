@@ -7,57 +7,67 @@ import sys
 # TODO format to release in order of length
 
 
-def mydiv(a, b):
-    result = truediv(a, b)
-    if int(result) == result:
-        return int(result)
-    else:
-        raise ValueError
+operations = [
+    ("+", add),
+    ("-", sub),
+    ("*", mul),
+    ("/", truediv),
+]
 
 
-operations = [(add, "+"), (sub, "-"), (mul, "*"), (mydiv, "/")]
-
-
-def represent_stack(stack):
-    reps = [str(item) if type(item) is int else item[1] for item in stack]
-    return " ".join(reps)
-
-
-def evaluate(stack) -> int:
+# Expression tree represented as tuples: (left_expr, operator, right_expr)
+def evaluate(expr):
+    if type(expr) is int:
+        return expr
+    left, op, right = expr
     try:
-        total = 0
-        last_operation = add
-        for item in stack:
-            if type(item) is int:
-                total = last_operation(total, item)
-            else:
-                last_operation = item[0]
+        l_val = evaluate(left)
+        r_val = evaluate(right)
+        if l_val is None or r_val is None or l_val < 0 or r_val < 0:
+            return None
+        if op == "/" and r_val == 0:
+            return None
+        result = dict(operations)[op](l_val, r_val)
+        if int(result) != result:  # countdown only allows integers
+            return None
+        return int(result)
+    except ZeroDivisionError:
+        return None
 
-        return total
-    except ValueError:
-        return 0
+
+def to_string(expr):
+    if type(expr) is int:
+        return str(expr)
+    left, op, right = expr
+    return f"({to_string(left)} {op} {to_string(right)})"
+
+
+def all_expressions(numbers):
+    if len(numbers) == 1:
+        return [numbers[0]]
+
+    expressions = []
+    for i in range(1, len(numbers)):
+        left_parts = all_expressions(numbers[:i])
+        right_parts = all_expressions(numbers[i:])
+        for l in left_parts:
+            for r in right_parts:
+                for op, _ in operations:
+                    expressions.append((l, op, r))
+    return expressions
 
 
 def solve(target, numbers):
-    for r in range(1, len(numbers) + 1):
-        orderings = permutations(numbers, r)
-        if r == 1:
-            for ordering in orderings:
-                if ordering[0] != target:
-                    continue
-                print(ordering[0])
-            continue
-        ops = list(permutations(operations, r - 1))
-        for ordering in orderings:
-            for op_series in ops:
-                stack = []
-                for i, n in enumerate(ordering):
-                    stack.append(n)
-                    if i != len(ordering) - 1:
-                        stack.append(op_series[i])
-                stack_result = evaluate(stack)
-                if stack_result == target:
-                    print(f"{represent_stack(stack)} = {target}")
+    seen = set()
+    for perm in permutations(numbers):
+        exprs = all_expressions(list(perm))
+        for expr in exprs:
+            val = evaluate(expr)
+            if val == target:
+                expr_str = to_string(expr)
+                if expr_str not in seen:
+                    seen.add(expr_str)
+                    print(f"{expr_str} = {target}")
 
 
 def play():
@@ -76,5 +86,6 @@ def play():
 if __name__ == "__main__":
     while True:
         # solve(500, [1, 2, 3, 4, 10, 50])
-        # solve(773, [3, 10, 1, 1, 8, 10]) # (10 + 1) * (8 - 1) * 10 + 3
-        play()
+        solve(773, [3, 10, 1, 1, 8, 10]) # (10 + 1) * (8 - 1) * 10 + 3
+        exit(0)
+        # play()
