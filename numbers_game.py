@@ -1,5 +1,8 @@
 from itertools import permutations
 from operator import mul, truediv, add, sub
+
+from multiprocessing import Pool
+
 import sys
 
 
@@ -53,6 +56,9 @@ def all_expressions(numbers):
         for l in left_parts:
             for r in right_parts:
                 for op, _ in operations:
+                    # Prune commutative duplicates
+                    if op in ("+", "*") and repr(l) > repr(r):
+                        continue
                     expressions.append((l, op, r))
     return expressions
 
@@ -80,12 +86,10 @@ def play():
 
     solve(target, numbers)
 
-    print("\nWARNING Not bidmas, execute in order of seeing")
-
 
 if __name__ == "__main__":
     while True:
         # solve(500, [1, 2, 3, 4, 10, 50])
-        solve(773, [3, 10, 1, 1, 8, 10]) # (10 + 1) * (8 - 1) * 10 + 3
-        exit(0)
-        # play()
+        # solve(773, [3, 10, 1, 1, 8, 10])  # (10 + 1) * (8 - 1) * 10 + 3
+        # exit(0)
+        play()
