@@ -23,14 +23,14 @@ operations = [
 ]
 
 
-def to_string(expr):
+def to_string(expr: str):
     if type(expr) is int:
         return str(expr)
     left, op, right = expr
     return f"({to_string(left)} {op} {to_string(right)})"
 
 
-def all_expressions_rpn(numbers):
+def all_expressions_rpn(numbers: list[int]):
     if len(numbers) == 1:
         return [str(numbers[0])]
 
@@ -49,7 +49,7 @@ def all_expressions_rpn(numbers):
     return expressions
 
 
-def generate_all_rpn_expressions(numbers):
+def generate_all_rpn_expressions(numbers: list[int]):
     """Generates RPN strings for all permutations and all subset lengths."""
     seen = set()
     results = []
@@ -63,17 +63,22 @@ def generate_all_rpn_expressions(numbers):
     return results
 
 
-def solve(target, numbers):
-    seen = set()
-    for perm in permutations(numbers):
-        exprs = generate_all_rpn_expressions(list(perm))
-        for expr in exprs:
-            if expr in seen:
-                continue
-            seen.add(expr)
-            val = rpn.evaluate(expr.encode("utf-8"))
-            if val == target:
-                print(f"{expr} = {target}")
+def check_sol(expr: tuple[str, int]):
+    val = rpn.evaluate(expr[0].encode("utf-8"))
+    if val == expr[1]:
+        print(f"{expr[0]} = {expr[1]}")
+
+
+def solve(target: int, numbers: list[int]):
+    texprs = generate_all_rpn_expressions(numbers)
+    exprs = []
+    for expr in texprs:
+        exprs.append((expr, target))
+
+    # with Pool(8) as p:
+    #     p.map(check_sol, exprs)
+    for expr in exprs:
+        check_sol(expr)
 
 
 def play():
@@ -90,6 +95,6 @@ def play():
 if __name__ == "__main__":
     while True:
         # solve(500, [1, 2, 3, 4, 10, 50])
-        solve(773, [3, 10, 1, 1, 8, 10])  # (10 + 1) * (8 - 1) * 10 + 3
-        exit(0)
+        # solve(773, [3, 10, 1, 1, 8, 10])  # (10 + 1) * (8 - 1) * 10 + 3
+        # exit(0)
         play()
