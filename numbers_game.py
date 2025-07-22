@@ -68,13 +68,12 @@ def solve(target, numbers):
     for perm in permutations(numbers):
         exprs = generate_all_rpn_expressions(list(perm))
         for expr in exprs:
+            if expr in seen:
+                continue
+            seen.add(expr)
             val = rpn.evaluate(expr.encode("utf-8"))
             if val == target:
-                # expr_str = to_string(expr)
-                expr_str = expr
-                if expr_str not in seen:
-                    seen.add(expr_str)
-                    print(f"{expr_str} = {target}")
+                print(f"{expr} = {target}")
 
 
 def play():
